@@ -1,0 +1,68 @@
+<mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36">
+  <diagram name="Page-1" id="c4acf3e9-155e-7222-9cf6-157b1a14988f">
+    <mxGraphModel dx="1163" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-10" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fakLxRXCsyI6LA_JwHUT-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-3" parent="1" style="html=1;whiteSpace=wrap;" value="Новое" vertex="1">
+          <mxGeometry height="50" width="110" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-11" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fakLxRXCsyI6LA_JwHUT-5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-13" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fakLxRXCsyI6LA_JwHUT-9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-4" parent="1" style="html=1;whiteSpace=wrap;" value="В работе" vertex="1">
+          <mxGeometry height="50" width="110" x="240" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-12" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fakLxRXCsyI6LA_JwHUT-6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-14" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fakLxRXCsyI6LA_JwHUT-7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-5" parent="1" style="html=1;whiteSpace=wrap;" value="Устранено" vertex="1">
+          <mxGeometry height="50" width="110" x="440" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-6" parent="1" style="html=1;whiteSpace=wrap;" value="Архив" vertex="1">
+          <mxGeometry height="50" width="110" x="640" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-15" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="160" />
+              <mxPoint x="330" y="160" />
+            </Array>
+            <mxPoint x="330" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-16" connectable="0" parent="fakLxRXCsyI6LA_JwHUT-15" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="возврат в работу" vertex="1">
+          <mxGeometry relative="1" x="-0.2413" y="-4" as="geometry">
+            <mxPoint x="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-18" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="fakLxRXCsyI6LA_JwHUT-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-19" connectable="0" parent="fakLxRXCsyI6LA_JwHUT-18" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="обжаловано" vertex="1">
+          <mxGeometry relative="1" x="0.1884" y="1" as="geometry">
+            <mxPoint x="29" y="8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-7" parent="1" style="html=1;whiteSpace=wrap;" value="Отклонено" vertex="1">
+          <mxGeometry height="50" width="110" x="440" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-17" edge="1" parent="1" source="fakLxRXCsyI6LA_JwHUT-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="fakLxRXCsyI6LA_JwHUT-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fakLxRXCsyI6LA_JwHUT-9" parent="1" style="html=1;whiteSpace=wrap;" value="Требуется уточнение" vertex="1">
+          <mxGeometry height="50" width="110" x="240" y="190" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

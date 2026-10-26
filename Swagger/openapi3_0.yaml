@@ -1,0 +1,1000 @@
+openapi: 3.0.3
+info:
+  title: API системы «Охота на риски»
+  description: |
+    Платформа для фиксации и управления профессиональными рисками в технологическом колледже.
+    Пользователи могут создавать сообщения об опасности, отслеживать статус, получать уведомления,
+    а специалисты по ОТ и администраторы — управлять процессом устранения и анализировать статистику.
+  version: 1.0.0
+  contact:
+    name: Служба охраны труда
+    email: ot@college.ru
+
+servers:
+  - url: https://api.ohota-na-riski.college.ru/api/v1
+    description: Production server
+  - url: http://localhost:8080/api/v1
+    description: Development server
+
+tags:
+   - name: Auth
+     description: Аутентификация и управление сессией
+   - name: Users
+     description: Управление пользователями (только админ/специалист)
+   - name: Risks
+     description: Сообщения о рисках (основная сущность)
+   - name: Categories
+     description: Справочник категорий рисков
+   - name: Locations
+     description: Справочник местоположений (иерархический)
+   - name: Notifications
+     description: Уведомления пользователей
+   - name: Statistics
+     description: Аналитика и выгрузка отчётов
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Аутентификация по JWT токену, полученному при входе
+
+  schemas:
+    # === User ===
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1
+        email:
+          type: string
+          format: email
+          example: ivanov@college.ru
+        role:
+          type: string
+          enum: [applicant, specialist, executor, admin]
+          example: applicant
+        lastName:
+          type: string
+          example: Иванов
+        firstName:
+          type: string
+          example: Иван
+        middleName:
+          type: string
+          example: Иванович
+        birthDate:
+          type: string
+          format: date
+          example: 2000-01-01
+        position:
+          type: string
+          nullable: true
+          example: Мастер производственного обучения
+        academicGroup:
+          type: string
+          nullable: true
+          example: ПК-21
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-01-15T10:30:00Z
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+        - lastName
+        - firstName
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        lastName:
+          type: string
+        firstName:
+          type: string
+        middleName:
+          type: string
+        role:
+          type: string
+          enum: [applicant, specialist, executor]
+        birthDate:
+          type: string
+          format: date
+        position:
+          type: string
+        academicGroup:
+          type: string
+    UserUpdate:
+      type: object
+      properties:
+        lastName:
+          type: string
+        firstName:
+          type: string
+        middleName:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        position:
+          type: string
+        academicGroup:
+          type: string
+
+     # === Risk ===
+    Risk:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 101
+        reporterId:
+          type: integer
+          example: 1
+        executorId:
+          type: integer
+          nullable: true
+          example: 5
+        categoryId:
+          type: integer
+          example: 3
+        locationId:
+          type: integer
+          example: 42
+        status:
+          type: string
+          enum: [new, in_progress, resolved, rejected, need_clarification]
+          example: new
+        description:
+          type: string
+          example: Оголённый провод у станка в мастерской №3
+        photoBeforeUrl:
+          type: string
+          format: uri
+          example: /uploads/risks/101/before.jpg
+        photoAfterUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: /uploads/risks/101/after.jpg
+        resolutionComment:
+          type: string
+          nullable: true
+          example: Провод изолирован, станок безопасен
+        rejectionReason:
+          type: string
+          nullable: true
+          example: Не подтверждено нарушение
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-01-15T10:30:00Z
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-01-18T15:20:00Z
+        appealDeadline:
+          type: string
+          format: date-time
+          example: 2025-01-22T10:30:00Z
+    RiskCreate:
+      type: object
+      required:
+        - categoryId
+        - locationId
+        - description
+        - photoBefore
+      properties:
+        categoryId:
+          type: integer
+        locationId:
+          type: integer
+        description:
+          type: string
+          maxLength: 2000
+        photoBefore:
+          type: string
+          format: binary
+          description: Фото опасности (обязательно, max 10MB, jpg/jpeg/png)
+    RiskUpdateStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [in_progress, rejected, need_clarification]
+        comment:
+          type: string
+          description: Обязателен при смене статуса (ФТ-09)
+    RiskAssign:
+      type: object
+      required:
+        - executorId
+      properties:
+        executorId:
+          type: integer
+    RiskResolve:
+      type: object
+      required:
+        - photoAfter
+        - resolutionComment
+      properties:
+        photoAfter:
+          type: string
+          format: binary
+          description: Фото после устранения (обязательно)
+        resolutionComment:
+          type: string
+          description: Отчётный комментарий (обязательно)
+    RiskAppeal:
+      type: object
+      required:
+        - comment
+      properties:
+        comment:
+          type: string
+          description: Причина несогласия с закрытием
+
+     # === RiskLog ===
+    RiskLogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        riskId:
+          type: integer
+        userId:
+          type: integer
+        userFullName:
+          type: string
+          example: Иванов И.И.
+        oldStatus:
+          type: string
+          nullable: true
+        newStatus:
+          type: string
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+     # === Category ===
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: Электрическая опасность
+        isArchived:
+          type: boolean
+          default: false
+    CategoryUpsert:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+     # === Location ===
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        parentId:
+          type: integer
+          nullable: true
+        level:
+          type: string
+          enum: [territory, building, floor, room]
+        name:
+          type: string
+        isActive:
+          type: boolean
+    LocationTreeNode:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        level:
+          type: string
+        children:
+          type: array
+          items:
+        $ref: '#/components/schemas/LocationTreeNode'
+
+     # === Notification ===
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        riskId:
+          type: integer
+        type:
+          type: string
+          enum: [status_change, assignment]
+        message:
+          type: string
+        isRead:
+          type: boolean
+        emailSent:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+     # === Statistics ===
+    StatisticsSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Всего заявок за период
+        byStatus:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Распределение по статусам
+        avgResolutionDays:
+          type: number
+          format: float
+          description: Среднее время устранения (дней)
+        topCategories:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryName:
+                type: string
+              count:
+                type: integer
+        topLocations:
+          type: array
+          items:
+            type: object
+            properties:
+              locationName:
+                type: string
+              count:
+                type: integer
+
+     # === Error ===
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        details:
+          type: string
+
+ # === Пути (Endpoints) ===
+paths:
+  # ----- Auth -----
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Аутентификация пользователя
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Неверный email или пароль
+          content:
+             application/json:
+               schema:
+                 $ref: '#/components/schemas/ErrorResponse'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Выход из системы
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный выход
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Получить информацию о текущем пользователе
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/User'
+
+   # ----- Users (только админ/специалист) -----
+  /users:
+    get:
+      tags: [Users]
+      summary: Получить список пользователей (с фильтрацией по роли)
+      operationId: getUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [applicant, specialist, executor, admin]
+          description: Фильтр по роли
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '403':
+          description: Доступ запрещён (требуются права админа или специалиста)
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Получить информацию о пользователе
+      operationId: getUserById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Пользователь не найден
+    put:
+      tags: [Users]
+      summary: Обновить информацию о пользователе
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Данные обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Нет прав на редактирование
+        '404':
+          description: Пользователь не найден
+
+   # ----- Risks (основная сущность) -----
+  /risks:
+    get:
+      tags: [Risks]
+      summary: Получить ленту сообщений о рисках (с фильтрацией)
+      operationId: getRisksList
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, in_progress, resolved, rejected, need_clarification]
+          description: Фильтр по статусу
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+          description: Фильтр по категории
+        - name: locationId
+          in: query
+          schema:
+            type: integer
+          description: Фильтр по местоположению
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Начало периода
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Конец периода
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список сообщений
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Risk'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+    post:
+      tags: [Risks]
+      summary: Создать новое сообщение об опасности
+      operationId: createRisk
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RiskCreate'
+      responses:
+        '201':
+          description: Сообщение создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Risk'
+        '400':
+          description: Ошибка валидации (например, не прикреплено фото)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /risks/{id}:
+    get:
+      tags: [Risks]
+      summary: Получить детали сообщения
+      operationId: getRiskById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Детали сообщения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Risk'
+        '404':
+          description: Сообщение не найдено
+
+  /risks/{id}/status:
+    patch:
+      tags: [Risks]
+      summary: Изменить статус сообщения (только специалист/админ)
+      operationId: updateStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskUpdateStatus'
+      responses:
+        '200':
+          description: Статус обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Risk'
+        '403':
+          description: Нет прав на изменение статуса
+        '409':
+          description: Некорректный переход статуса
+
+  /risks/{id}/assign:
+    patch:
+      tags: [Risks]
+      summary: Назначить исполнителя (только специалист/админ)
+      operationId: assignExecutor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskAssign'
+      responses:
+        '200':
+          description: Исполнитель назначен
+          content:
+           application/json:
+            schema:
+              $ref: '#/components/schemas/Risk'
+        '404':
+          description: Исполнитель не найден
+
+  /risks/{id}/resolve:
+    post:
+      tags: [Risks]
+      summary: Устранить риск (фото «ПОСЛЕ» + комментарий)
+      operationId: resolveRisk
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RiskResolve'
+      responses:
+        '200':
+          description: Риск устранён, статус изменён на resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Risk'
+        '400':
+          description: Не прикреплено фото или комментарий
+
+  /risks/{id}/appeal:
+    post:
+      tags: [Risks]
+      summary: Обжаловать закрытие (только автор, в течение 7 дней)
+      operationId: appealRisk
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskAppeal'
+      responses:
+        '200':
+          description: Заявка возвращена в статус «В работе»
+        '403':
+          description: Срок обжалования истёк или пользователь не автор
+        '409':
+          description: Заявка не в статусе «Устранено»
+
+  /risks/{id}/logs:
+    get:
+      tags: [Risks]
+      summary: Получить историю изменений статусов и комментариев
+      operationId: getRiskHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Журнал изменений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RiskLogEntry'
+
+   # ----- Categories -----
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Получить список категорий рисков
+      operationId: getCategories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: includeArchived
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Включить архивные категории (только для админа/специалиста)
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      tags: [Categories]
+      summary: Добавить или изменить категорию (только админ/специалист)
+      operationId: upsertCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpsert'
+      responses:
+        '201':
+          description: Категория создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '403':
+          description: Недостаточно прав
+
+  /categories/{id}:
+    delete:
+      tags: [Categories]
+      summary: Архивировать категорию (не физическое удаление)
+      operationId: archiveCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Категория архивирована
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Категория не найдена
+
+   # ----- Locations -----
+  /locations/tree:
+    get:
+      tags: [Locations]
+      summary: Получить иерархическое дерево местоположений
+      operationId: getLocationTree
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Дерево местоположений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocationTreeNode'
+
+   # ----- Notifications -----
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: Получить уведомления текущего пользователя
+      operationId: getMyNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Только непрочитанные
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Список уведомлений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  /notifications/{id}:
+    patch:
+      tags: [Notifications]
+      summary: Отметить уведомление как прочитанное
+      operationId: markNotificationAsRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Уведомление обновлено
+
+   # ----- Statistics (только админ/специалист) -----
+  /stats/summary:
+    get:
+      tags: [Statistics]
+      summary: Получить сводную статистику по рискам (ФТ-11)
+      operationId: getStatistics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Начало периода
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Конец периода
+        - name: groupBy
+          in: query
+          schema:
+            type: string
+            enum: [category, location, status, executor]
+            default: category
+          description: Группировка
+      responses:
+        '200':
+          description: Статистические данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatisticsSummary'
+        '403':
+          description: Доступ запрещён (только админ/специалист)
+
+  /stats/export:
+    get:
+      tags: [Statistics]
+      summary: Выгрузить отчёт в Excel/PDF (ФТ-12)
+      operationId: exportReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [excel, pdf]
+          description: Формат выгрузки
+      responses:
+        '200':
+          description: Файл отчёта
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Доступ запрещён (только админ/специалист)
+        
